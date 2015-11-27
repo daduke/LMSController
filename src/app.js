@@ -118,7 +118,7 @@ function showPlayer(event, data) {
 		});
 	});
 	playerCard.on('longClick', 'up', function(event) {
-		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
+		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
 		xhrRequest(myurl, 'GET', function(response) {
 			Vibe.vibrate('short');
 			trackInfo(playerMAC, playerCard);
@@ -132,7 +132,7 @@ function showPlayer(event, data) {
 		});
 	});
 	playerCard.on('longClick', 'down', function(event) {
-		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
+		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
 		xhrRequest(myurl, 'GET', function(response) {
 			Vibe.vibrate('short');
 			trackInfo(playerMAC, playerCard);

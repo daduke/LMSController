@@ -29,9 +29,9 @@
                 "type": "font"
             },
             {
-                "file": "images/icon.png",
+                "file": "images/lmspebble.png",
                 "menuIcon": true,
-                "name": "IMAGES_ICON_PNG",
+                "name": "IMAGES_LMSPEBBLE_PNG",
                 "type": "png"
             },
             {

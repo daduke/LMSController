@@ -12,16 +12,20 @@ var protocol = 'http';
 var host     = '192.168.0.1';
 var port     = '9000';
 
-// libraries we need
+var URL = protocol + '://' + host  + ':' + port;
+var title = '';
+var artist = '';
+var album = '';
+
+// load libraries
 var UI = require('ui');
 var Vector2 = require('vector2');
 var Vibe = require('ui/vibe');
-
+var Accel = require('ui/accel');
 
 // XHR call to control logitech media player
 var xhrRequest = function (url, type, callback) {
   var xhr = new XMLHttpRequest();
-  console.log("status::: "+xhr.status);
   xhr.onload = function () {
     callback(this.responseText);
   };
@@ -43,6 +47,19 @@ function ajaxJSONPost(url, jsondata, callback){
   xhr.send(jsondata);
 }
 
+// get information about playing track
+function trackInfo(mac, card) {
+  var data='{"id":1,"method":"slim.request","params":["'+mac+'",["status","-",1,"tags:gABbehldiqtyrSuoKLN"]]}';
+	ajaxJSONPost(URL+"/jsonrpc.js", data, function(response) {
+		title = response.result.playlist_loop[0].title;
+		artist = response.result.playlist_loop[0].artist;
+		album = response.result.playlist_loop[0].album;
+		card.body(artist + ' - ' + title);
+    }
+  );
+}
+
+Accel.init();
 // show splash screen while waiting for data
 var splashWindow = new UI.Window();
 var text = new UI.Text({
@@ -58,19 +75,84 @@ var text = new UI.Text({
 splashWindow.add(text);
 splashWindow.show();
 
+// show player card
+function showPlayer(event, data) {
+	var playerMAC = data.result.players_loop[event.itemIndex].playerid;
+	var playerName = data.result.players_loop[event.itemIndex].name;
+
+	// show control card for selected player
+	var playerCard = new UI.Card({
+		title: playerName,
+		body:  artist + ' - ' + title,
+
+		// display icons
+		action: {
+			up: 'images/volup.png',
+			select: 'images/play.png',
+			down: 'images/voldown.png'
+		}
+	});
+	playerCard.show();
+	trackInfo(playerMAC, playerCard);
+
+	// handlers for player control
+	playerCard.on('click', 'up', function(event) {
+		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b10&player="+playerMAC;
+		xhrRequest(myurl, 'GET', function(response) {
+			Vibe.vibrate('short');
+			trackInfo(playerMAC, playerCard);
+		});
+	});
+	playerCard.on('click', 'select', function(event) {
+		var myurl=URL+"/status.html?p0=pause&player="+playerMAC;
+		xhrRequest(myurl, 'GET', function(response) {
+			Vibe.vibrate('short');
+			trackInfo(playerMAC, playerCard);
+		});
+	});
+	playerCard.on('click', 'down', function(event) {
+		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-10&player="+playerMAC;
+		xhrRequest(myurl, 'GET', function(response) {
+			Vibe.vibrate('short');
+			trackInfo(playerMAC, playerCard);
+		});
+	});
+	playerCard.on('longClick', 'up', function(event) {
+		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
+		xhrRequest(myurl, 'GET', function(response) {
+			Vibe.vibrate('short');
+			trackInfo(playerMAC, playerCard);
+		});
+	});
+	playerCard.on('longClick', 'select', function(event) {
+		var myurl=URL+"/status.html?p0=power&player="+playerMAC;
+		xhrRequest(myurl, 'GET', function(response) {
+			Vibe.vibrate('short');
+			trackInfo(playerMAC, playerCard);
+		});
+	});
+	playerCard.on('longClick', 'down', function(event) {
+		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
+		xhrRequest(myurl, 'GET', function(response) {
+			Vibe.vibrate('short');
+			trackInfo(playerMAC, playerCard);
+		});
+	});
+	playerCard.on('accelTap', function(event) {
+		Vibe.vibrate('short');
+		trackInfo(playerMAC, playerCard);
+	});
+}
 
 // get list of players and create menu
 var playerMenu;
-var URL = protocol + '://' + host  + ':' + port;
-var reqStr = '{"id":1,"method":"slim.request","params":["",["serverstatus",0,999]]}';
-var ajResp;
-ajaxJSONPost(URL+'/jsonrpc.js', reqStr, getPlayers);
+var data = '{"id":1,"method":"slim.request","params":["",["serverstatus",0,999]]}';
+ajaxJSONPost(URL+'/jsonrpc.js', data, getPlayers);
 
 // callback for player data
 function getPlayers(data) {
-  ajResp = data;
 	var players = [];
-	ajResp.result.players_loop.forEach(function(s, i, o) {
+	data.result.players_loop.forEach(function(s, i, o) {
 		players.push({title: s.name, groups:[], subtitle: ''});
 	});
 		
@@ -81,48 +163,6 @@ function getPlayers(data) {
 	
 	// handler when player is selected
 	playerMenu.on('select', function(event) {
-		var playerMAC = ajResp.result.players_loop[event.itemIndex].playerid;
-		var playerName = ajResp.result.players_loop[event.itemIndex].name;
-		var playerModel = ajResp.result.players_loop[event.itemIndex].model;
-		
-		// show control card for selected player
-		var playerCard = new UI.Card({
-			title: playerName,
-			body:  playerModel,
-			
-			// display icons
-			action: {
-				up: 'images/volup.png',
-				select: 'images/play.png',
-				down: 'images/voldown.png'
-			}
-		});
-		playerCard.show();
-		
-		// handlers for player control
-		playerCard.on('click', 'up', function(event) {
-			var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b10&player="+playerMAC;
-			xhrRequest(myurl, 'GET', function(responseText) {Vibe.vibrate('short');});
-		});
-		playerCard.on('click', 'select', function(event) {
-			var myurl=URL+"/status.html?p0=pause&player="+playerMAC;
-			xhrRequest(myurl, 'GET', function(responseText) {Vibe.vibrate('short');});
-		});
-		playerCard.on('click', 'down', function(event) {
-			var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-10&player="+playerMAC;
-			xhrRequest(myurl, 'GET', function(responseText) {Vibe.vibrate('short');});
-		});
-		playerCard.on('longClick', 'up', function(event) {
-			var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
-			xhrRequest(myurl, 'GET', function(responseText) {Vibe.vibrate('short');});
-		});
-		playerCard.on('longClick', 'select', function(event) {
-			var myurl=URL+"/status.html?p0=power&player="+playerMAC;
-			xhrRequest(myurl, 'GET', function(responseText) {Vibe.vibrate('short');});
-		});
-		playerCard.on('longClick', 'down', function(event) {
-			var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
-			xhrRequest(myurl, 'GET', function(responseText) {Vibe.vibrate('short');});
-		});
+		showPlayer(event, data);
 	});
 }

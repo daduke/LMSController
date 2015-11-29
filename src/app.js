@@ -7,12 +7,9 @@
  *
  */
 
-// configure your logitech media player here
-var protocol = 'http';
-var host     = '192.168.0.1';
-var port     = '9000';
+// get LMS URL
+var URL = localStorage.getItem(6);
 
-var URL = protocol + '://' + host  + ':' + port;
 var title = '';
 var artist = '';
 var album = '';
@@ -166,3 +163,19 @@ function getPlayers(data) {
 		showPlayer(event, data);
 	});
 }
+
+// LMS configuration
+Pebble.addEventListener('showConfiguration', function(event) {
+  Pebble.openURL('http://daduke.org/lmspebble/');
+});
+
+Pebble.addEventListener("webviewclosed",
+  function(event) {
+    var configuration = JSON.parse(decodeURIComponent(event.response));
+		var host     = configuration.ip;
+		var port     = configuration.port;
+		var URL = 'http://' + host  + ':' + port;
+
+    localStorage.setItem(6, URL);
+  }
+);

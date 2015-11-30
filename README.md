@@ -1,2 +1,2 @@
-# lmspebble
-Control your squeezebox players from your pebble
+# LMSController
+Control your Logitech music players from your pebble

@@ -1,5 +1,5 @@
 /**
- * lmspebble - control your squeezebox music players from your pebble
+ * LMSController - control your Logitech music players from your pebble
  *
  * (c) 2015 Christian Herzog <daduke@daduke.org>
  * 
@@ -8,7 +8,10 @@
  */
 
 // get LMS URL
-var URL = localStorage.getItem(6);
+var settings = JSON.parse(localStorage.getItem("settings"));
+if (settings) {
+	var URL = 'http://' + settings.ip + ':' + settings.port;
+}
 
 var title = '';
 var artist = '';
@@ -166,16 +169,15 @@ function getPlayers(data) {
 
 // LMS configuration
 Pebble.addEventListener('showConfiguration', function(event) {
-  Pebble.openURL('http://daduke.org/lmspebble/');
+	var settings = encodeURIComponent(localStorage.getItem("settings"));
+  Pebble.openURL('http://daduke.org/lmscontroller/index.html?' + settings);
 });
 
-Pebble.addEventListener("webviewclosed",
-  function(event) {
-    var configuration = JSON.parse(decodeURIComponent(event.response));
-		var host     = configuration.ip;
-		var port     = configuration.port;
-		var URL = 'http://' + host  + ':' + port;
-
-    localStorage.setItem(6, URL);
-  }
-);
+Pebble.addEventListener("webviewclosed", function(event) {
+	if (event.response) {
+		var settings = JSON.parse(decodeURIComponent(event.response));
+		localStorage.clear();
+		localStorage.setItem("settings", JSON.stringify(settings));
+		URL = 'http://' + settings.ip  + ':' + settings.port;
+	}
+});

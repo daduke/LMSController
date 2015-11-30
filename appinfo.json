@@ -4,7 +4,7 @@
         "configurable"
     ],
     "companyName": "daduke",
-    "longName": "lmspebble",
+    "longName": "LMS Controller",
     "projectType": "pebblejs",
     "resources": {
         "media": [
@@ -52,7 +52,7 @@
         ]
     },
     "sdkVersion": "3",
-    "shortName": "lmspebble",
+    "shortName": "LMSController",
     "targetPlatforms": [
         "aplite",
         "basalt"

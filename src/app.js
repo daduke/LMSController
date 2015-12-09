@@ -102,47 +102,61 @@ function showPlayer(event, data) {
 	playerCard.on('click', 'up', function(event) {
 		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b10&player="+playerMAC;
 		xhrRequest(myurl, 'GET', function(response) {
-			Vibe.vibrate('short');
+			if (settings.vibration) {
+				Vibe.vibrate('short');
+			}
 			trackInfo(playerMAC, playerCard);
 		});
 	});
 	playerCard.on('click', 'select', function(event) {
 		var myurl=URL+"/status.html?p0=pause&player="+playerMAC;
 		xhrRequest(myurl, 'GET', function(response) {
-			Vibe.vibrate('short');
+			if (settings.vibration) {
+				Vibe.vibrate('short');
+			}
 			trackInfo(playerMAC, playerCard);
 		});
 	});
 	playerCard.on('click', 'down', function(event) {
 		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-10&player="+playerMAC;
 		xhrRequest(myurl, 'GET', function(response) {
-			Vibe.vibrate('short');
+			if (settings.vibration) {
+				Vibe.vibrate('short');
+			}
 			trackInfo(playerMAC, playerCard);
 		});
 	});
 	playerCard.on('longClick', 'up', function(event) {
 		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
 		xhrRequest(myurl, 'GET', function(response) {
-			Vibe.vibrate('short');
+			if (settings.vibration) {
+				Vibe.vibrate('short');
+			}
 			trackInfo(playerMAC, playerCard);
 		});
 	});
 	playerCard.on('longClick', 'select', function(event) {
 		var myurl=URL+"/status.html?p0=power&player="+playerMAC;
 		xhrRequest(myurl, 'GET', function(response) {
-			Vibe.vibrate('short');
+			if (settings.vibration) {
+				Vibe.vibrate('short');
+			}
 			trackInfo(playerMAC, playerCard);
 		});
 	});
 	playerCard.on('longClick', 'down', function(event) {
 		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
 		xhrRequest(myurl, 'GET', function(response) {
-			Vibe.vibrate('short');
+			if (settings.vibration) {
+				Vibe.vibrate('short');
+			}
 			trackInfo(playerMAC, playerCard);
 		});
 	});
 	playerCard.on('accelTap', function(event) {
-		Vibe.vibrate('short');
+			if (settings.vibration) {
+				Vibe.vibrate('short');
+			}
 		trackInfo(playerMAC, playerCard);
 	});
 }

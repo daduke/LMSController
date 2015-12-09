@@ -10,7 +10,7 @@
 // get LMS URL
 var settings = JSON.parse(localStorage.getItem("settings"));
 if (settings) {
-	var URL = 'http://' + settings.ip + ':' + settings.port;
+	var URL = settings.protocol + '://' + settings.ip + ':' + settings.port;
 }
 
 var title = '';
@@ -38,6 +38,9 @@ function ajaxJSONPost(url, jsondata, callback){
   var xhr = new XMLHttpRequest();
   xhr.open("POST", url);
   xhr.setRequestHeader('Content-Type', 'application/json');
+	if (settings.user !== '') {
+		xhr.setRequestHeader("Authorization", "Basic " + btoa(settings.user + ":" + settings.password));
+	}
   xhr.onreadystatechange = function () {
     if (xhr.readyState == 4 && xhr.status == 200) {
       var json = JSON.parse(xhr.responseText);
@@ -170,7 +173,7 @@ function getPlayers(data) {
 // LMS configuration
 Pebble.addEventListener('showConfiguration', function(event) {
 	var settings = encodeURIComponent(localStorage.getItem("settings"));
-  Pebble.openURL('http://daduke.org/lmscontroller/index.html?' + settings);
+  Pebble.openURL('https://daduke.org/lmscontroller/index.html?' + settings);
 });
 
 Pebble.addEventListener("webviewclosed", function(event) {

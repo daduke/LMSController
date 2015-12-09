@@ -29,6 +29,11 @@
                 "type": "font"
             },
             {
+                "file": "images/pause.png",
+                "name": "IMAGES_PAUSE_PNG",
+                "type": "png"
+            },
+            {
                 "file": "images/lmspebble.png",
                 "menuIcon": true,
                 "name": "IMAGES_LMSPEBBLE_PNG",
@@ -59,7 +64,7 @@
     ],
     "uuid": "e2415dfc-5a77-461f-a054-b24f8ca61c12",
     "versionCode": 1,
-    "versionLabel": "1.05",
+    "versionLabel": "1.10",
     "watchapp": {
         "hiddenApp": false,
         "watchface": false

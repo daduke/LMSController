@@ -16,6 +16,7 @@ if (settings) {
 var title = '';
 var artist = '';
 var album = '';
+var mode = '';
 
 // load libraries
 var UI = require('ui');
@@ -52,12 +53,30 @@ function ajaxJSONPost(url, jsondata, callback){
 
 // get information about playing track
 function trackInfo(mac, card) {
-  var data='{"id":1,"method":"slim.request","params":["'+mac+'",["status","-",1,"tags:gABbehldiqtyrSuoKLN"]]}';
+//  var data='{"id":1,"method":"slim.request","params":["'+mac+'",["status","-",1,"tags:gABbehldiqtyrSuoKLN"]]}';
+  var data='{"id":1,"method":"slim.request","params":["'+mac+'",["status","-",1,"tags:a"]]}';
 	ajaxJSONPost(URL+"/jsonrpc.js", data, function(response) {
 		title = response.result.playlist_loop[0].title;
 		artist = response.result.playlist_loop[0].artist;
-		album = response.result.playlist_loop[0].album;
-		card.body(artist + ' - ' + title);
+		switch (response.result.mode) {
+			case 'play':
+				mode = 'playing ';
+				card.action({
+					up: 'images/volup.png',
+					select: 'images/pause.png',
+					down: 'images/voldown.png'
+				});
+				break;
+			case 'pause':
+				mode = 'pausing ';
+				card.action({
+					up: 'images/volup.png',
+					select: 'images/play.png',
+					down: 'images/voldown.png'
+				});
+				break;
+		}
+		card.body(mode + artist + ' - ' + title);
     }
   );
 }

@@ -10,9 +10,8 @@
 // get LMS URL
 var settings = JSON.parse(localStorage.getItem("settings"));
 if (settings) {
-//	var URL = settings.protocol + '://' + settings.ip + ':' + settings.port;
+	var URL = settings.protocol + '://' + settings.ip + ':' + settings.port;
 }
-var URL = 'http://192.168.1.24:9002/';
 
 var title = '';
 var artist = '';
@@ -23,41 +22,37 @@ var UI = require('ui');
 var Vector2 = require('vector2');
 var Vibe = require('ui/vibe');
 var Accel = require('ui/accel');
+var ajax = require('ajax');
 
 // XHR call to control logitech media player
-var xhrRequest = function (url, type, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open(type, url);
-	if (settings.user !== '') {
-		xhr.setRequestHeader("Authorization", "Basic " + btoa(settings.user + ":" + settings.password));
+var sbRequest = function (url, method, data, callback) {
+	var options = {
+		url: url,
+	};
+	if (settings.password !== '') {
+		options.headers = { Authorization: "Basic " + btoa(settings.user + ":" + settings.password) };
 	}
-  xhr.onload = function () {
-    callback(this.responseText);
-  };
-  xhr.send();
+	if (data) {
+		options.data = data;
+	}
+	if (method === 'POST') {
+		options.method = 'post';
+		options.type = 'json';
+	}
+	ajax(options,
+		function(data, status, request) {
+			callback(data);
+		},
+		function(error, status, request) {
+			console.log('The ajax request failed: ' + request + '   ' + status + '    '  + error);
+		}
+	);
 };
-
-// JSON Ajax call to logitech media player RPC
-function ajaxJSONPost(url, jsondata, callback){
-  var xhr = new XMLHttpRequest();
-  xhr.open("POST", url);
-  xhr.setRequestHeader('Content-Type', 'application/json');
-	if (settings.user !== '') {
-		xhr.setRequestHeader("Authorization", "Basic " + btoa(settings.user + ":" + settings.password));
-	}
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState == 4 && xhr.status == 200) {
-      var json = JSON.parse(xhr.responseText);
-      callback(json);
-    }
-  };
-  xhr.send(jsondata);
-}
 
 // get information about playing track
 function trackInfo(mac, card) {
-  var data='{"id":1,"method":"slim.request","params":["'+mac+'",["status","-",1,"tags:a"]]}';
-	ajaxJSONPost(URL+"/jsonrpc.js", data, function(response) {
+  var data = {"id":1,"method":"slim.request","params":[mac,["status","-",1,"tags:a"]]};
+	sbRequest(URL+"/jsonrpc.js", "POST", data, function(response) {
 		artist = response.result.playlist_loop[0].artist + ' - ';
 		title = response.result.playlist_loop[0].title;
 		switch (response.result.mode) {
@@ -132,9 +127,10 @@ function showPlayer(event, data) {
 	trackInfo(playerMAC, playerCard);
 
 	// handlers for player control
+	var increment = settings.increment;
 	playerCard.on('click', 'up', function(event) {
-		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b10&player="+playerMAC;
-		xhrRequest(myurl, 'GET', function(response) {
+		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b"+increment+"&player="+playerMAC;
+		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
@@ -143,7 +139,7 @@ function showPlayer(event, data) {
 	});
 	playerCard.on('click', 'select', function(event) {
 		var myurl=URL+"/status.html?p0=pause&player="+playerMAC;
-		xhrRequest(myurl, 'GET', function(response) {
+		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
@@ -151,8 +147,8 @@ function showPlayer(event, data) {
 		});
 	});
 	playerCard.on('click', 'down', function(event) {
-		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-10&player="+playerMAC;
-		xhrRequest(myurl, 'GET', function(response) {
+		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-"+increment+"&player="+playerMAC;
+		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
@@ -161,7 +157,7 @@ function showPlayer(event, data) {
 	});
 	playerCard.on('longClick', 'up', function(event) {
 		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
-		xhrRequest(myurl, 'GET', function(response) {
+		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
@@ -170,7 +166,7 @@ function showPlayer(event, data) {
 	});
 	playerCard.on('longClick', 'select', function(event) {
 		var myurl=URL+"/status.html?p0=power&player="+playerMAC;
-		xhrRequest(myurl, 'GET', function(response) {
+		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
@@ -179,7 +175,7 @@ function showPlayer(event, data) {
 	});
 	playerCard.on('longClick', 'down', function(event) {
 		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
-		xhrRequest(myurl, 'GET', function(response) {
+		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
@@ -196,8 +192,8 @@ function showPlayer(event, data) {
 
 // get list of players and create menu
 var playerMenu;
-var data = '{"id":1,"method":"slim.request","params":["",["serverstatus",0,999]]}';
-ajaxJSONPost(URL+'/jsonrpc.js', data, getPlayers);
+var data = {"id":1,"method":"slim.request","params":["",["serverstatus",0,999]]};
+sbRequest(URL+'/jsonrpc.js', "POST", data, getPlayers);
 
 // callback for player data
 function getPlayers(data) {
@@ -228,6 +224,6 @@ Pebble.addEventListener("webviewclosed", function(event) {
 		var settings = JSON.parse(decodeURIComponent(event.response));
 		localStorage.clear();
 		localStorage.setItem("settings", JSON.stringify(settings));
-//		URL = 'http://' + settings.ip  + ':' + settings.port;
+		URL = 'http://' + settings.ip  + ':' + settings.port;
 	}
 });

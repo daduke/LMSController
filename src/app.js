@@ -10,12 +10,12 @@
 // get LMS URL
 var settings = JSON.parse(localStorage.getItem("settings"));
 if (settings) {
-	var URL = settings.protocol + '://' + settings.ip + ':' + settings.port;
+//	var URL = settings.protocol + '://' + settings.ip + ':' + settings.port;
 }
+var URL = 'http://192.168.1.24:9002/';
 
 var title = '';
 var artist = '';
-var album = '';
 var mode = '';
 
 // load libraries
@@ -27,10 +27,13 @@ var Accel = require('ui/accel');
 // XHR call to control logitech media player
 var xhrRequest = function (url, type, callback) {
   var xhr = new XMLHttpRequest();
+  xhr.open(type, url);
+	if (settings.user !== '') {
+		xhr.setRequestHeader("Authorization", "Basic " + btoa(settings.user + ":" + settings.password));
+	}
   xhr.onload = function () {
     callback(this.responseText);
   };
-  xhr.open(type, url);
   xhr.send();
 };
 
@@ -53,14 +56,13 @@ function ajaxJSONPost(url, jsondata, callback){
 
 // get information about playing track
 function trackInfo(mac, card) {
-//  var data='{"id":1,"method":"slim.request","params":["'+mac+'",["status","-",1,"tags:gABbehldiqtyrSuoKLN"]]}';
   var data='{"id":1,"method":"slim.request","params":["'+mac+'",["status","-",1,"tags:a"]]}';
 	ajaxJSONPost(URL+"/jsonrpc.js", data, function(response) {
+		artist = response.result.playlist_loop[0].artist + ' - ';
 		title = response.result.playlist_loop[0].title;
-		artist = response.result.playlist_loop[0].artist;
 		switch (response.result.mode) {
 			case 'play':
-				mode = 'playing ';
+				mode = '';
 				card.action({
 					up: 'images/volup.png',
 					select: 'images/pause.png',
@@ -68,7 +70,9 @@ function trackInfo(mac, card) {
 				});
 				break;
 			case 'pause':
-				mode = 'pausing ';
+				mode = 'is paused';
+				artist = '';
+				title = '';
 				card.action({
 					up: 'images/volup.png',
 					select: 'images/play.png',
@@ -76,7 +80,17 @@ function trackInfo(mac, card) {
 				});
 				break;
 		}
-		card.body(mode + artist + ' - ' + title);
+		if (response.result.power === 0) {
+			mode = 'is off';
+			artist = '';
+			title = '';
+			card.action({
+				up: 'images/volup.png',
+				select: 'images/play.png',
+				down: 'images/voldown.png'
+			});
+		}
+		card.body(mode + artist + title);
     }
   );
 }
@@ -214,6 +228,6 @@ Pebble.addEventListener("webviewclosed", function(event) {
 		var settings = JSON.parse(decodeURIComponent(event.response));
 		localStorage.clear();
 		localStorage.setItem("settings", JSON.stringify(settings));
-		URL = 'http://' + settings.ip  + ':' + settings.port;
+//		URL = 'http://' + settings.ip  + ':' + settings.port;
 	}
 });

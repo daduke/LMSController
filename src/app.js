@@ -131,7 +131,7 @@ function showPlayer(event, data) {
 		font: 'gothic_18',
 		text: playerName,
 		color: 'black',
-		textOverflow:'wrap',
+		textOverflow:'ellipsis',
 		textAlign:'left',
 	});
 	playerInfo.add(playerBox);
@@ -142,7 +142,7 @@ function showPlayer(event, data) {
 		font: 'gothic_24',
 		text: '',
 		color: 'black',
-		textOverflow:'wrap',
+		textOverflow: 'ellipsis',
 		textAlign:'left',
 	});
 	playerInfo.add(artistBox);
@@ -153,7 +153,8 @@ function showPlayer(event, data) {
 		font: 'gothic_24_bold',
 		text: '',
 		color: 'black',
-		textOverflow:'wrap',
+		background: 'white',
+		textOverflow: 'ellipsis',
 		textAlign:'left',
 	});
 	playerInfo.add(titleBox);
@@ -234,7 +235,8 @@ sbRequest(URL+'/jsonrpc.js', "POST", data, getPlayers);
 function getPlayers(data) {
 	var players = [];
 	data.result.players_loop.forEach(function(s, i, o) {
-		var playing = (s.isplaying === 1)?'playing':'off';
+		var playing = (s.isplaying === 1)?'playing':'on';
+		if (s.power === 0) playing = 'off';
 		players.push({title: s.name, groups:[], subtitle: playing});
 	});
 		

@@ -15,7 +15,6 @@ if (settings) {
 
 var title = '';
 var artist = '';
-var mode = '';
 
 // load libraries
 var UI = require('ui');
@@ -50,25 +49,25 @@ var sbRequest = function (url, method, data, callback) {
 };
 
 // get information about playing track
-function trackInfo(mac, card) {
+function trackInfo(mac, window, artistBox, titleBox) {
   var data = {"id":1,"method":"slim.request","params":[mac,["status","-",1,"tags:a"]]};
 	sbRequest(URL+"/jsonrpc.js", "POST", data, function(response) {
-		artist = response.result.playlist_loop[0].artist + ' - ';
+		artist = response.result.playlist_loop[0].artist;
 		title = response.result.playlist_loop[0].title;
 		switch (response.result.mode) {
 			case 'play':
-				mode = '';
-				card.action({
+				window.action({
 					up: 'images/volup.png',
 					select: 'images/pause.png',
 					down: 'images/voldown.png'
 				});
 				break;
 			case 'pause':
-				mode = 'is paused';
-				artist = '';
-				title = '';
-				card.action({
+				if (response.result.remote === 1) {
+					artist = 'is paused';
+					title = '';
+				}
+				window.action({
 					up: 'images/volup.png',
 					select: 'images/play.png',
 					down: 'images/voldown.png'
@@ -76,16 +75,16 @@ function trackInfo(mac, card) {
 				break;
 		}
 		if (response.result.power === 0) {
-			mode = 'is off';
-			artist = '';
+			artist = 'is off';
 			title = '';
-			card.action({
+			window.action({
 				up: 'images/volup.png',
 				select: 'images/play.png',
 				down: 'images/voldown.png'
 			});
 		}
-		card.body(mode + artist + title);
+		artistBox.text(artist);
+		titleBox.text(title);
     }
   );
 }
@@ -93,17 +92,17 @@ function trackInfo(mac, card) {
 Accel.init();
 // show splash screen while waiting for data
 var splashWindow = new UI.Window();
-var text = new UI.Text({
+var splashText = new UI.Text({
   position: new Vector2(0, 0),
   size: new Vector2(144, 168),
   text:'get player info...',
-  font:'GOTHIC_28_BOLD',
+  font:'gothic_28_bold',
   color:'white',
   textOverflow:'wrap',
   textAlign:'center',
   backgroundColor:'black'
 });
-splashWindow.add(text);
+splashWindow.add(splashText);
 splashWindow.show();
 
 // show player card
@@ -112,81 +111,117 @@ function showPlayer(event, data) {
 	var playerName = data.result.players_loop[event.itemIndex].name;
 
 	// show control card for selected player
-	var playerCard = new UI.Card({
-		title: playerName,
-		body:  artist + ' - ' + title,
-
-		// display icons
+	var playerInfo = new UI.Window({
 		action: {
 			up: 'images/volup.png',
 			select: 'images/play.png',
 			down: 'images/voldown.png'
 		}
 	});
-	playerCard.show();
-	trackInfo(playerMAC, playerCard);
+	var bgRect = new UI.Rect({
+		position: new Vector2(0, 0),
+		size: new Vector2(144, 168),
+		backgroundColor: 'white'
+	});
+	playerInfo.add(bgRect);
+	
+	var playerBox = new UI.Text({
+		position: new Vector2(3, 0),
+		size: new Vector2(114, 25),
+		font: 'gothic_18',
+		text: playerName,
+		color: 'black',
+		textOverflow:'wrap',
+		textAlign:'left',
+	});
+	playerInfo.add(playerBox);
+	
+	var artistBox = new UI.Text({
+		position: new Vector2(3, 28),
+		size: new Vector2(114, 60),
+		font: 'gothic_24',
+		text: '',
+		color: 'black',
+		textOverflow:'wrap',
+		textAlign:'left',
+	});
+	playerInfo.add(artistBox);
+	
+	var titleBox = new UI.Text({
+		position: new Vector2(3, 78),
+		size: new Vector2(114, 150),
+		font: 'gothic_24_bold',
+		text: '',
+		color: 'black',
+		textOverflow:'wrap',
+		textAlign:'left',
+	});
+	playerInfo.add(titleBox);
+	
+	playerInfo.show();
+	trackInfo(playerMAC, playerInfo, artistBox, titleBox);
 
 	// handlers for player control
 	var increment = settings.increment;
-	playerCard.on('click', 'up', function(event) {
+	playerInfo.on('click', 'up', function(event) {
 		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b"+increment+"&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
-			trackInfo(playerMAC, playerCard);
+			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
-	playerCard.on('click', 'select', function(event) {
+	playerInfo.on('click', 'select', function(event) {
 		var myurl=URL+"/status.html?p0=pause&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
-			trackInfo(playerMAC, playerCard);
+			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
-	playerCard.on('click', 'down', function(event) {
+	playerInfo.on('click', 'down', function(event) {
 		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-"+increment+"&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
-			trackInfo(playerMAC, playerCard);
+			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
-	playerCard.on('longClick', 'up', function(event) {
+	playerInfo.on('longClick', 'up', function(event) {
 		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
-			trackInfo(playerMAC, playerCard);
+			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
-	playerCard.on('longClick', 'select', function(event) {
+	playerInfo.on('longClick', 'select', function(event) {
 		var myurl=URL+"/status.html?p0=power&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
-			trackInfo(playerMAC, playerCard);
+			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
-	playerCard.on('longClick', 'down', function(event) {
+	playerInfo.on('longClick', 'down', function(event) {
 		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
-			trackInfo(playerMAC, playerCard);
+			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
-	playerCard.on('accelTap', function(event) {
+	playerInfo.on('accelTap', function(event) {
 			if (settings.vibration) {
 				Vibe.vibrate('short');
 			}
-		trackInfo(playerMAC, playerCard);
+		trackInfo(playerMAC, playerInfo, artistBox, titleBox);
 	});
 }
 
@@ -199,7 +234,8 @@ sbRequest(URL+'/jsonrpc.js', "POST", data, getPlayers);
 function getPlayers(data) {
 	var players = [];
 	data.result.players_loop.forEach(function(s, i, o) {
-		players.push({title: s.name, groups:[], subtitle: ''});
+		var playing = (s.isplaying === 1)?'playing':'off';
+		players.push({title: s.name, groups:[], subtitle: playing});
 	});
 		
 	// menu UI element for list of players

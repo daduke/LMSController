@@ -13,8 +13,8 @@ if (settings) {
 	var URL = settings.protocol + '://' + settings.ip + ':' + settings.port;
 }
 
+var artist = 'empty playlist';
 var title = '';
-var artist = '';
 
 // load libraries
 var UI = require('ui');
@@ -23,8 +23,9 @@ var Vibe = require('ui/vibe');
 var Accel = require('ui/accel');
 var ajax = require('ajax');
 
+// *** helper functions ***
 // XHR call to control logitech media player
-var sbRequest = function (url, method, data, callback) {
+function sbRequest(url, method, data, callback) {
 	var options = {
 		url: url,
 	};
@@ -46,71 +47,66 @@ var sbRequest = function (url, method, data, callback) {
 			console.log('The ajax request failed: ' + request + '   ' + status + '    '  + error);
 		}
 	);
-};
+}
 
-// get information about playing track
-function trackInfo(mac, window, artistBox, titleBox) {
-  var data = {"id":1,"method":"slim.request","params":[mac,["status","-",1,"tags:a"]]};
-	sbRequest(URL+"/jsonrpc.js", "POST", data, function(response) {
-		artist = response.result.playlist_loop[0].artist;
-		title = response.result.playlist_loop[0].title;
-		switch (response.result.mode) {
-			case 'play':
-				window.action({
-					up: 'images/volup.png',
-					select: 'images/pause.png',
-					down: 'images/voldown.png'
-				});
-				break;
-			case 'pause':
-				if (response.result.remote === 1) {
-					artist = 'is paused';
-					title = '';
-				}
-				window.action({
-					up: 'images/volup.png',
-					select: 'images/play.png',
-					down: 'images/voldown.png'
-				});
-				break;
-		}
-		if (response.result.power === 0) {
-			artist = 'is off';
-			title = '';
+// update info window
+function updateInfo(response, window, artistBox, titleBox) {
+	artist = response.result.playlist_loop[0].artist;
+	title = response.result.playlist_loop[0].title;
+	switch (response.result.mode) {
+		case 'play':
+			window.action({
+				up: 'images/volup.png',
+				select: 'images/pause.png',
+				down: 'images/voldown.png'
+			});
+			break;
+		case 'pause':
+			if (response.result.remote === 1) {
+				artist = 'is paused';
+				title = '';
+			}
 			window.action({
 				up: 'images/volup.png',
 				select: 'images/play.png',
 				down: 'images/voldown.png'
 			});
-		}
-		artistBox.text(artist);
-		titleBox.text(title);
-    }
-  );
+			break;
+	}
+	if (response.result.power === 0) {
+		artist = 'is off';
+		title = '';
+		window.action({
+			up: 'images/volup.png',
+			select: 'images/play.png',
+			down: 'images/voldown.png'
+		});
+	}
+	artistBox.text(artist);
+	titleBox.text(title);
 }
 
-Accel.init();
-// show splash screen while waiting for data
-var splashWindow = new UI.Window();
-var splashText = new UI.Text({
-  position: new Vector2(0, 0),
-  size: new Vector2(144, 168),
-  text:'get player info...',
-  font:'gothic_28_bold',
-  color:'white',
-  textOverflow:'wrap',
-  textAlign:'center',
-  backgroundColor:'black'
-});
-splashWindow.add(splashText);
-splashWindow.show();
+// get information about playing track
+function trackInfo(mac, window, artistBox, titleBox) {
+  var data = {"id":1,"method":"slim.request","params":[mac,["status","-",1,"tags:a"]]};
+	sbRequest(URL+"/jsonrpc.js", "POST", data, function(response) {
+		updateInfo(response, window, artistBox, titleBox);
+	});
+}
 
-// show player card
-function showPlayer(event, data) {
-	var playerMAC = data.result.players_loop[event.itemIndex].playerid;
-	var playerName = data.result.players_loop[event.itemIndex].name;
+function actOnButton(playerMAC, playerInfo, artistBox, titleBox) {
+	if (settings.vibration) {
+		Vibe.vibrate('short');
+	}
+	trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+}
 
-	// show control card for selected player
+// show player window
+function showPlayer(event, playerData) {
+	var playerMAC = playerData.result.players_loop[event.itemIndex].playerid;
+	var playerName = playerData.result.players_loop[event.itemIndex].name;
+
+	// build control window for selected player
 	var playerInfo = new UI.Window({
 		action: {
 			up: 'images/volup.png',
@@ -167,88 +163,60 @@ function showPlayer(event, data) {
 	playerInfo.on('click', 'up', function(event) {
 		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b"+increment+"&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
-			if (settings.vibration) {
-				Vibe.vibrate('short');
-			}
-			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+			actOnButton(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
 	playerInfo.on('click', 'select', function(event) {
 		var myurl=URL+"/status.html?p0=pause&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
-			if (settings.vibration) {
-				Vibe.vibrate('short');
-			}
-			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+			actOnButton(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
 	playerInfo.on('click', 'down', function(event) {
 		var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-"+increment+"&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
-			if (settings.vibration) {
-				Vibe.vibrate('short');
-			}
-			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+			actOnButton(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
 	playerInfo.on('longClick', 'up', function(event) {
 		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
-			if (settings.vibration) {
-				Vibe.vibrate('short');
-			}
-			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+			actOnButton(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
 	playerInfo.on('longClick', 'select', function(event) {
 		var myurl=URL+"/status.html?p0=power&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
-			if (settings.vibration) {
-				Vibe.vibrate('short');
-			}
-			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+			actOnButton(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
 	playerInfo.on('longClick', 'down', function(event) {
 		var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
 		sbRequest(myurl, 'GET', '', function(response) {
-			if (settings.vibration) {
-				Vibe.vibrate('short');
-			}
-			trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+			actOnButton(playerMAC, playerInfo, artistBox, titleBox);
 		});
 	});
 	playerInfo.on('accelTap', function(event) {
-			if (settings.vibration) {
-				Vibe.vibrate('short');
-			}
-		trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+		actOnButton(playerMAC, playerInfo, artistBox, titleBox);
 	});
 }
 
-// get list of players and create menu
-var playerMenu;
-var data = {"id":1,"method":"slim.request","params":["",["serverstatus",0,999]]};
-sbRequest(URL+'/jsonrpc.js', "POST", data, getPlayers);
+// populate menu
+function updateMenu() {
+	var data = {"id":1,"method":"slim.request","params":["",["serverstatus",0,999]]};
+	sbRequest(URL+'/jsonrpc.js', "POST", data, getPlayers);
+}
 
 // callback for player data
 function getPlayers(data) {
 	var players = [];
+	playerData = data;
 	data.result.players_loop.forEach(function(s, i, o) {
 		var playing = (s.isplaying === 1)?'playing':'on';
 		if (s.power === 0) playing = 'off';
 		players.push({title: s.name, groups:[], subtitle: playing});
 	});
-		
-	// menu UI element for list of players
-  playerMenu = new UI.Menu({sections: [{ title: 'Players', items: players }], playerIndex: 0 });
-	splashWindow.hide();
-	playerMenu.show();
-	
-	// handler when player is selected
-	playerMenu.on('select', function(event) {
-		showPlayer(event, data);
-	});
+  playerMenu.items(0, players);
 }
 
 // LMS configuration
@@ -265,3 +233,19 @@ Pebble.addEventListener("webviewclosed", function(event) {
 		URL = 'http://' + settings.ip  + ':' + settings.port;
 	}
 });
+
+// *** program flow starts here ***
+Accel.init();
+// menu for the LMS players
+var playerMenu = new UI.Menu({sections: [{ title: 'Players', items: [{title: 'waiting for players..'}] }], playerIndex: 0 });
+var playerData;
+// handler when menu is drawn
+playerMenu.on('show', function(event) {
+	updateMenu(event);
+});
+
+// handler when player is selected
+playerMenu.on('select', function(event) {
+	showPlayer(event, playerData);
+});
+playerMenu.show();	// rest of program flow happens via handlers

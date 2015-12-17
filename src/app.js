@@ -51,14 +51,15 @@ function sbRequest(url, method, data, callback) {
 
 // update info window
 function updateInfo(response, window, artistBox, titleBox) {
-	artist = response.result.playlist_loop[0].artist;
-	title = response.result.playlist_loop[0].title;
+	artist = response.result.playlist_loop[0].artist || 'empty playlist';
+	title = response.result.playlist_loop[0].title || '';
 	switch (response.result.mode) {
 		case 'play':
 			window.action({
 				up: 'images/volup.png',
 				select: 'images/pause.png',
-				down: 'images/voldown.png'
+				down: 'images/voldown.png',
+				backgroundColor: 'black'
 			});
 			break;
 		case 'pause':
@@ -69,7 +70,8 @@ function updateInfo(response, window, artistBox, titleBox) {
 			window.action({
 				up: 'images/volup.png',
 				select: 'images/play.png',
-				down: 'images/voldown.png'
+				down: 'images/voldown.png',
+				backgroundColor: 'black'
 			});
 			break;
 	}
@@ -79,7 +81,8 @@ function updateInfo(response, window, artistBox, titleBox) {
 		window.action({
 			up: 'images/volup.png',
 			select: 'images/play.png',
-			down: 'images/voldown.png'
+			down: 'images/voldown.png',
+			backgroundColor: 'black'
 		});
 	}
 	artistBox.text(artist);
@@ -111,7 +114,9 @@ function showPlayer(event, playerData) {
 		action: {
 			up: 'images/volup.png',
 			select: 'images/play.png',
-			down: 'images/voldown.png'
+			down: 'images/voldown.png',
+			backgroundColor: 'black',
+			fullscreen: false
 		}
 	});
 	var bgRect = new UI.Rect({
@@ -123,8 +128,8 @@ function showPlayer(event, playerData) {
 	
 	var playerBox = new UI.Text({
 		position: new Vector2(3, 0),
-		size: new Vector2(114, 25),
-		font: 'gothic_18',
+		size: new Vector2(110, 22),
+		font: 'gothic_18_bold',
 		text: playerName,
 		color: 'black',
 		textOverflow:'ellipsis',
@@ -133,8 +138,8 @@ function showPlayer(event, playerData) {
 	playerInfo.add(playerBox);
 	
 	var artistBox = new UI.Text({
-		position: new Vector2(3, 28),
-		size: new Vector2(114, 60),
+		position: new Vector2(3, 23),
+		size: new Vector2(110, 60),
 		font: 'gothic_24',
 		text: '',
 		color: 'black',
@@ -144,12 +149,11 @@ function showPlayer(event, playerData) {
 	playerInfo.add(artistBox);
 	
 	var titleBox = new UI.Text({
-		position: new Vector2(3, 78),
-		size: new Vector2(114, 150),
+		position: new Vector2(3, 72),
+		size: new Vector2(110, 96),
 		font: 'gothic_24_bold',
 		text: '',
 		color: 'black',
-		background: 'white',
 		textOverflow: 'ellipsis',
 		textAlign:'left',
 	});
@@ -216,6 +220,9 @@ function getPlayers(data) {
 		if (s.power === 0) playing = 'off';
 		players.push({title: s.name, groups:[], subtitle: playing});
 	});
+//	players.sort(function(a,b) {
+//    return a.title.localeCompare(b.title);
+//	});
   playerMenu.items(0, players);
 }
 
@@ -237,7 +244,7 @@ Pebble.addEventListener("webviewclosed", function(event) {
 // *** program flow starts here ***
 Accel.init();
 // menu for the LMS players
-var playerMenu = new UI.Menu({sections: [{ title: 'Players', items: [{title: 'waiting for players..'}] }], playerIndex: 0 });
+var playerMenu = new UI.Menu({sections: [{ title: 'Players', items: [{title: 'getting players..'}] }], playerIndex: 0 });
 var playerData;
 // handler when menu is drawn
 playerMenu.on('show', function(event) {

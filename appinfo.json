@@ -11,17 +11,17 @@
             {
                 "file": "images/menu_icon.png",
                 "name": "IMAGE_MENU_ICON",
-                "type": "png"
+                "type": "bitmap"
             },
             {
                 "file": "images/logo_splash.png",
                 "name": "IMAGE_LOGO_SPLASH",
-                "type": "png"
+                "type": "bitmap"
             },
             {
                 "file": "images/tile_splash.png",
                 "name": "IMAGE_TILE_SPLASH",
-                "type": "png"
+                "type": "bitmap"
             },
             {
                 "file": "fonts/UbuntuMono-Regular.ttf",
@@ -29,30 +29,30 @@
                 "type": "font"
             },
             {
-                "file": "images/pause.png",
-                "name": "IMAGES_PAUSE_PNG",
-                "type": "png"
+                "file": "images/play.png",
+                "name": "IMAGES_PLAY_PNG",
+                "type": "bitmap"
             },
             {
-                "file": "images/lmspebble.png",
+                "file": "images/icon.png",
                 "menuIcon": true,
-                "name": "IMAGES_LMSPEBBLE_PNG",
-                "type": "png"
-            },
-            {
-                "file": "images/voldown.png",
-                "name": "IMAGES_VOLDOWN_PNG",
-                "type": "png"
+                "name": "IMAGES_ICON_PNG",
+                "type": "bitmap"
             },
             {
                 "file": "images/volup.png",
                 "name": "IMAGES_VOLUP_PNG",
-                "type": "png"
+                "type": "bitmap"
             },
             {
-                "file": "images/play.png",
-                "name": "IMAGES_PLAY_PNG",
-                "type": "png"
+                "file": "images/voldown.png",
+                "name": "IMAGES_VOLDOWN_PNG",
+                "type": "bitmap"
+            },
+            {
+                "file": "images/pause.png",
+                "name": "IMAGES_PAUSE_PNG",
+                "type": "bitmap"
             }
         ]
     },
@@ -64,7 +64,7 @@
     ],
     "uuid": "e2415dfc-5a77-461f-a054-b24f8ca61c12",
     "versionCode": 1,
-    "versionLabel": "1.36",
+    "versionLabel": "1.38",
     "watchapp": {
         "hiddenApp": false,
         "watchface": false

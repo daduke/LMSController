@@ -29,14 +29,14 @@
                 "type": "font"
             },
             {
-                "file": "images/play.png",
-                "name": "IMAGES_PLAY_PNG",
+                "file": "images/lmspebble.png",
+                "menuIcon": true,
+                "name": "IMAGES_LMSPEBBLE_PNG",
                 "type": "bitmap"
             },
             {
-                "file": "images/icon.png",
-                "menuIcon": true,
-                "name": "IMAGES_ICON_PNG",
+                "file": "images/play.png",
+                "name": "IMAGES_PLAY_PNG",
                 "type": "bitmap"
             },
             {
@@ -64,7 +64,7 @@
     ],
     "uuid": "e2415dfc-5a77-461f-a054-b24f8ca61c12",
     "versionCode": 1,
-    "versionLabel": "1.38",
+    "versionLabel": "1.39",
     "watchapp": {
         "hiddenApp": false,
         "watchface": false

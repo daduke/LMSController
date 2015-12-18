@@ -59,7 +59,7 @@ function updateInfo(response, window, artistBox, titleBox) {
 				up: 'images/volup.png',
 				select: 'images/pause.png',
 				down: 'images/voldown.png',
-				backgroundColor: 'black'
+				backgroundColor: 'lightGray'
 			});
 			break;
 		case 'pause':
@@ -71,7 +71,7 @@ function updateInfo(response, window, artistBox, titleBox) {
 				up: 'images/volup.png',
 				select: 'images/play.png',
 				down: 'images/voldown.png',
-				backgroundColor: 'black'
+				backgroundColor: 'lightGray'
 			});
 			break;
 	}
@@ -82,7 +82,7 @@ function updateInfo(response, window, artistBox, titleBox) {
 			up: 'images/volup.png',
 			select: 'images/play.png',
 			down: 'images/voldown.png',
-			backgroundColor: 'black'
+			backgroundColor: 'lightGray'
 		});
 	}
 	artistBox.text(artist);
@@ -115,7 +115,7 @@ function showPlayer(event, playerData) {
 			up: 'images/volup.png',
 			select: 'images/play.png',
 			down: 'images/voldown.png',
-			backgroundColor: 'black',
+			backgroundColor: 'lightGray',
 			fullscreen: false
 		}
 	});
@@ -133,6 +133,7 @@ function showPlayer(event, playerData) {
 		text: playerName,
 		color: 'black',
 		textOverflow:'ellipsis',
+		backgroundColor: 'lightGray',
 		textAlign:'left',
 	});
 	playerInfo.add(playerBox);
@@ -220,8 +221,11 @@ function getPlayers(data) {
 		if (s.power === 0) playing = 'off';
 		players.push({title: s.name, groups:[], subtitle: playing});
 	});
-//	players.sort(function(a,b) {
-//    return a.title.localeCompare(b.title);
+//	players.sort( function( a, b ) {
+//    a = a.title.toLowerCase();
+//    b = b.title.toLowerCase();
+
+//    return a < b ? -1 : a > b ? 1 : 0;
 //	});
   playerMenu.items(0, players);
 }

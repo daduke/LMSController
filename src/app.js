@@ -133,7 +133,6 @@ function showPlayer(event, playerData) {
 		text: playerName,
 		color: 'black',
 		textOverflow:'ellipsis',
-		backgroundColor: 'lightGray',
 		textAlign:'left',
 	});
 	playerInfo.add(playerBox);

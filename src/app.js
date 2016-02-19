@@ -13,11 +13,18 @@ if (settings) {
 if (settings.menuskip) {
 	settings.menuskip = "|" + settings.menuskip;
 }
-var menuskip = new RegExp('Turn Off|Turn On|Search|App Gallery|Library Views|Remote Music|Compilations|Music Folder|Genres|Years|New Music'+settings.menuskip, "g");
+var skipList = 'Turn Off|Turn On|Search|App Gallery|Library Views|Remote Music|Compilations|Music Folder|Genres|Years|New Music'+settings.menuskip;
+if (settings.menushow) {
+	var temp = skipList;
+	var menushow = new RegExp("\\|"+settings.menushow, "g");
+	skipList = temp.replace(menushow, "");
+}
+var menuskip = new RegExp(skipList, "g");
 if (settings.debug) console.log('skip: '+menuskip);
 
 var artist = 'empty playlist';
 var title = '';
+var volume = 0;
 var BGCOLOR;
 var ABCOLOR;
 var HICOLOR;
@@ -25,6 +32,7 @@ var MAC;
 var playerInfo;
 var artistBox;
 var titleBox;
+var volumeBox;
 var actionMenus = [];
 
 // load libraries
@@ -112,9 +120,12 @@ function sbRequest(url, method, data, callback) {
 }
 
 // update info window
-function updateInfo(response, window, artistBox, titleBox) {
+function updateInfo(response, window, artistBox, titleBox, volumeBox) {
     artist = response.result.playlist_loop[0].artist || 'empty playlist';
     title = response.result.playlist_loop[0].title || '';
+		volume = response.result["mixer volume"];
+		if (volume === 100) volume = 99;
+		if (volume < 0) volume = 0;
     switch (response.result.mode) {
         case 'play':
             window.action({
@@ -149,21 +160,22 @@ function updateInfo(response, window, artistBox, titleBox) {
     }
     artistBox.text(artist);
     titleBox.text(title);
+    volumeBox.text(volume);
 }
 
 // get information about playing track
-function trackInfo(mac, window, artistBox, titleBox) {
+function trackInfo(mac, window, artistBox, titleBox, volumeBox) {
   var data = {"id":1,"method":"slim.request","params":[mac,["status","-",1,"tags:a"]]};
     sbRequest(URL+"/jsonrpc.js", "POST", data, function(response) {
-        updateInfo(response, window, artistBox, titleBox);
+        updateInfo(response, window, artistBox, titleBox, volumeBox);
     });
 }
 
-function actOnButton(playerMAC, playerInfo, artistBox, titleBox) {
+function actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox) {
     if (settings.vibration) {
         Vibe.vibrate('short');
     }
-    trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+    trackInfo(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
 }
 
 // show player window
@@ -191,7 +203,7 @@ function showPlayer(event) {
 
     var playerBox = new UI.Text({
         position: new Vector2(3, 0),
-        size: new Vector2(110, 22),
+        size: new Vector2(97, 22),
         font: 'gothic_18_bold',
         text: playerName,
         color: 'black',
@@ -221,36 +233,61 @@ function showPlayer(event) {
         textAlign:'left',
     });
     playerInfo.add(titleBox);
+	
+    volumeBox = new UI.Text({
+        position: new Vector2(100, 0),
+        size: new Vector2(18, 22),
+        font: 'gothic_14',
+        text: '',
+        color: 'black',
+        textOverflow: 'ellipsis',
+        textAlign:'left',
+    });
+    playerInfo.add(volumeBox);
 
     playerInfo.show();
-    trackInfo(playerMAC, playerInfo, artistBox, titleBox);
+    trackInfo(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
     // handlers for player control
     var increment = settings.increment;
     playerInfo.on('click', 'up', function(event) {
         var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b"+increment+"&player="+playerMAC;
         sbRequest(myurl, 'GET', '', function(response) {
-            actOnButton(playerMAC, playerInfo, artistBox, titleBox);
+            actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
     });
     playerInfo.on('click', 'select', function(event) {
         var myurl=URL+"/status.html?p0=pause&player="+playerMAC;
         sbRequest(myurl, 'GET', '', function(response) {
-            actOnButton(playerMAC, playerInfo, artistBox, titleBox);
+            actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
     });
     playerInfo.on('click', 'down', function(event) {
         var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-"+increment+"&player="+playerMAC;
         sbRequest(myurl, 'GET', '', function(response) {
-            actOnButton(playerMAC, playerInfo, artistBox, titleBox);
+            actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
     });
     playerInfo.on('longClick', 'up', function(event) {
+				playerInfo.action({
+						up: 'images/prev.png',
+						select: 'images/dots.png',
+						down: 'images/next.png',
+						backgroundColor: ABCOLOR,
+            fullscreen: false
+				});
         var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
         sbRequest(myurl, 'GET', '', function(response) {
-            actOnButton(playerMAC, playerInfo, artistBox, titleBox);
+            actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
     });
     playerInfo.on('longClick', 'select', function(event) {
+				playerInfo.action({
+						up: 'images/prev.png',
+						select: 'images/dots.png',
+						down: 'images/next.png',
+						backgroundColor: ABCOLOR,
+            fullscreen: false
+				});
         var myurl=URL+"/jsonrpc.js";
 				var data = {"id":1,"method":"slim.request","params":[playerMAC,["menu",0,500,"direct:1"]]};
 				sbRequest(myurl, "POST", data, function(response) {
@@ -258,13 +295,23 @@ function showPlayer(event) {
 				});
     });
     playerInfo.on('longClick', 'down', function(event) {
+				playerInfo.action({
+						up: 'images/prev.png',
+						select: 'images/dots.png',
+						down: 'images/next.png',
+						backgroundColor: ABCOLOR,
+            fullscreen: false
+				});
         var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
         sbRequest(myurl, 'GET', '', function(response) {
-            actOnButton(playerMAC, playerInfo, artistBox, titleBox);
+            actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
     });
     playerInfo.on('accelTap', function(event) {
-        actOnButton(playerMAC, playerInfo, artistBox, titleBox);
+			actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
+    });
+		playerInfo.on('show', function(event) {
+			trackInfo(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
     });
 }
 
@@ -326,7 +373,7 @@ function processMenu(event) {
 				s.hide();
 			});
 			setTimeout(function() {		//wait for track to start before reading track info
-				trackInfo(MAC, playerInfo, artistBox, titleBox);
+				trackInfo(MAC, playerInfo, artistBox, titleBox, volumeBox);
 			}, 5000);
 		} else {
 			getMenu(response, topNode, topName);

@@ -29,6 +29,21 @@
                 "type": "font"
             },
             {
+                "file": "images/dots.png",
+                "name": "IMAGES_DOTS_PNG",
+                "type": "bitmap"
+            },
+            {
+                "file": "images/prev.png",
+                "name": "IMAGES_PREV_PNG",
+                "type": "bitmap"
+            },
+            {
+                "file": "images/next.png",
+                "name": "IMAGES_NEXT_PNG",
+                "type": "bitmap"
+            },
+            {
                 "file": "images/lmspebble.png",
                 "menuIcon": true,
                 "name": "IMAGES_LMSPEBBLE_PNG",
@@ -64,7 +79,7 @@
     ],
     "uuid": "e2415dfc-5a77-461f-a054-b24f8ca61c12",
     "versionCode": 1,
-    "versionLabel": "2.00",
+    "versionLabel": "2.10",
     "watchapp": {
         "hiddenApp": false,
         "watchface": false

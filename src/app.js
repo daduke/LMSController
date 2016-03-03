@@ -15,9 +15,10 @@ if (settings.menuskip) {
 }
 var skipList = 'Turn Off|Turn On|Search|App Gallery|Library Views|Remote Music|Compilations|Music Folder|Genres|Years|New Music'+settings.menuskip;
 if (settings.menushow) {
-	var temp = skipList;
-	var menushow = new RegExp("\\|"+settings.menushow, "g");
-	skipList = temp.replace(menushow, "");
+	settings.menushow.split("|").forEach(function (item) {
+		var menushow = new RegExp("\\|"+item, "g");
+		skipList = skipList.replace(menushow, "");
+	});
 }
 var menuskip = new RegExp(skipList, "g");
 if (settings.debug) console.log('skip: '+menuskip);
@@ -121,8 +122,13 @@ function sbRequest(url, method, data, callback) {
 
 // update info window
 function updateInfo(response, window, artistBox, titleBox, volumeBox) {
-    artist = response.result.playlist_loop[0].artist || 'empty playlist';
+	if (response.result.playlist_loop) {
+		artist = response.result.playlist_loop[0].artist || 'empty playlist';
     title = response.result.playlist_loop[0].title || '';
+	} else {
+		artist = 'empty playlist';
+    title = '';
+	}
 		volume = response.result["mixer volume"];
 		if (volume === 100) volume = 99;
 		if (volume < 0) volume = 0;
@@ -136,7 +142,7 @@ function updateInfo(response, window, artistBox, titleBox, volumeBox) {
             });
             break;
         case 'pause':
-            if (response.result.remote === 1) {
+            if (response.result.remote === 1 && !settings.streampause) {
                 artist = 'is paused';
                 title = '';
             }
@@ -183,6 +189,9 @@ function showPlayer(event) {
 	var playerMAC = event.item.mac;
 	MAC = playerMAC;
 	var playerName = event.item.title;
+	var counter = localStorage.getItem(playerMAC);
+	localStorage.setItem(playerMAC, ++counter);
+
 
     // build control window for selected player
     playerInfo = new UI.Window({
@@ -330,7 +339,13 @@ function getPlayers(data) {
 		players.push({title: s.name, subtitle: playing, mac: s.playerid});
 	});
   players.sort( function( a, b ) {
-		return a.title < b.title ? -1 : 1;
+		var countA = localStorage.getItem(a.mac);
+		var countB = localStorage.getItem(b.mac);
+		if (settings.dynsort) {
+			return countA  > countB ? -1 : 1;
+		} else {
+			return a.title < b.title ? -1 : 1;
+		}
   });
   playerMenu.items(0, players);
 }

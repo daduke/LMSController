@@ -3,16 +3,11 @@
   "capabilities": [
     "configurable"
   ],
-  "companyName": "Meiguro",
-  "longName": "Pebble.js",
+  "companyName": "daduke",
+  "longName": "LMS Controller",
+  "projectType": "pebblejs",
   "resources": {
     "media": [
-      {
-        "file": "images/menu_icon.png",
-        "menuIcon": true,
-        "name": "IMAGE_MENU_ICON",
-        "type": "bitmap"
-      },
       {
         "file": "images/logo_splash.png",
         "name": "IMAGE_LOGO_SPLASH",
@@ -27,20 +22,62 @@
         "file": "fonts/UbuntuMono-Regular.ttf",
         "name": "MONO_FONT_14",
         "type": "font"
+      },
+      {
+        "file": "images/lmspebble.png",
+        "memoryFormat": "1Bit",
+        "menuIcon": true,
+        "name": "IMAGE_MENU_ICON",
+        "type": "bitmap"
+      },
+      {
+        "file": "images/dots.png",
+        "name": "IMAGES_DOTS_PNG",
+        "type": "bitmap"
+      },
+      {
+        "file": "images/prev.png",
+        "name": "IMAGES_PREV_PNG",
+        "type": "bitmap"
+      },
+      {
+        "file": "images/next.png",
+        "name": "IMAGES_NEXT_PNG",
+        "type": "bitmap"
+      },
+      {
+        "file": "images/play.png",
+        "name": "IMAGES_PLAY_PNG",
+        "type": "bitmap"
+      },
+      {
+        "file": "images/volup.png",
+        "name": "IMAGES_VOLUP_PNG",
+        "type": "bitmap"
+      },
+      {
+        "file": "images/voldown.png",
+        "name": "IMAGES_VOLDOWN_PNG",
+        "type": "bitmap"
+      },
+      {
+        "file": "images/pause.png",
+        "name": "IMAGES_PAUSE_PNG",
+        "type": "bitmap"
       }
     ]
   },
   "sdkVersion": "3",
-  "shortName": "Pebble.js",
+  "shortName": "LMSController",
   "targetPlatforms": [
     "aplite",
-    "basalt",
-    "chalk"
+    "basalt"
   ],
-  "uuid": "133215f0-cf20-4c05-997b-3c9be5a64e5b",
+  "uuid": "e2415dfc-5a77-461f-a054-b24f8ca61c12",
   "versionCode": 1,
-  "versionLabel": "0.4",
+  "versionLabel": "2.20",
   "watchapp": {
+    "hiddenApp": false,
     "watchface": false
   }
 }

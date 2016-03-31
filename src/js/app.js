@@ -29,12 +29,19 @@ var volume = 0;
 var BGCOLOR;
 var ABCOLOR;
 var HICOLOR;
+var XRES;
+var YRES;
+var TALIGN;
+var PALIGN;
+var WIDTH;
+var TOP;
 var MAC;
 var playerInfo;
 var artistBox;
 var titleBox;
 var volumeBox;
 var actionMenus = [];
+var platform;
 
 // load libraries
 var UI = require('ui');
@@ -199,59 +206,61 @@ function showPlayer(event) {
         action: {
             up: 'images/volup.png',
             select: 'images/play.png',
-            down: 'images/voldown.png',
-            backgroundColor: ABCOLOR,
-            fullscreen: false
-        }
+            down: 'images/voldown.png'
+        },
+        backgroundColor: ABCOLOR,
+        fullscreen: true
     });
     var bgRect = new UI.Rect({
         position: new Vector2(0, 0),
-        size: new Vector2(144, 168),
+        size: new Vector2(XRES, YRES),
         backgroundColor: BGCOLOR
     });
     playerInfo.add(bgRect);
 
+    var xpos = (platform === 'chalk')?(XRES/2):51;
     var playerBox = new UI.Text({
-        position: new Vector2(3, 0),
-        size: new Vector2(97, 22),
+        position: new Vector2(xpos-48, TOP),
+        size: new Vector2(96, 22),
         font: 'gothic_18_bold',
         text: playerName,
         color: 'black',
         textOverflow:'ellipsis',
-        textAlign:'left',
+        textAlign: PALIGN
     });
     playerInfo.add(playerBox);
 
     artistBox = new UI.Text({
-        position: new Vector2(3, 23),
-        size: new Vector2(110, 60),
+        position: new Vector2(3, TOP+23),
+        size: new Vector2(WIDTH, 60),
         font: 'gothic_24',
         text: '',
         color: 'black',
         textOverflow: 'ellipsis',
-        textAlign:'left',
+        textAlign: TALIGN
     });
     playerInfo.add(artistBox);
 
     titleBox = new UI.Text({
-        position: new Vector2(3, 72),
-        size: new Vector2(110, 96),
+        position: new Vector2(3, TOP+72),
+        size: new Vector2(WIDTH, 96),
         font: 'gothic_24_bold',
         text: '',
         color: 'black',
         textOverflow: 'ellipsis',
-        textAlign:'left',
+        textAlign: TALIGN
     });
     playerInfo.add(titleBox);
 
+    var x = (platform === 'chalk')?83:100;
     volumeBox = new UI.Text({
-        position: new Vector2(100, 0),
+        position: new Vector2(x, 0),
         size: new Vector2(18, 22),
         font: 'gothic_14',
         text: '',
         color: 'black',
         textOverflow: 'ellipsis',
-        textAlign:'left',
+        textAlign: 'left'
     });
     playerInfo.add(volumeBox);
 
@@ -282,8 +291,7 @@ function showPlayer(event) {
             up: 'images/prev.png',
             select: 'images/dots.png',
             down: 'images/next.png',
-            backgroundColor: ABCOLOR,
-            fullscreen: false
+            backgroundColor: ABCOLOR
         });
         var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
         sbRequest(myurl, 'GET', '', function(response) {
@@ -295,8 +303,7 @@ function showPlayer(event) {
             up: 'images/prev.png',
             select: 'images/dots.png',
             down: 'images/next.png',
-            backgroundColor: ABCOLOR,
-            fullscreen: false
+            backgroundColor: ABCOLOR
         });
         var myurl=URL+"/jsonrpc.js";
         var data = {"id":1,"method":"slim.request","params":[playerMAC,["menu",0,500,"direct:1"]]};
@@ -309,8 +316,7 @@ function showPlayer(event) {
             up: 'images/prev.png',
             select: 'images/dots.png',
             down: 'images/next.png',
-            backgroundColor: ABCOLOR,
-            fullscreen: false
+            backgroundColor: ABCOLOR
         });
         var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
         sbRequest(myurl, 'GET', '', function(response) {
@@ -364,10 +370,17 @@ function processMenu(event) {
             data = {"id":1,"method":"slim.request","params":[MAC, event.item.go.params]};
             ti = 1;
         } else if (cmd[0] && cmd[0] === 'playlist') {
-            data = {"id":1,"method":"slim.request","params":[MAC,["playlistcontrol","cmd:load","menu:1",cmd[1]+"_id:"+cmd[2],"useContextMenu:1"]]};
+            if (cmd[1] === 'song') {
+                data = {"id":1,"method":"slim.request","params":[MAC,["playlist","index",cmd[2]]]};
+            } else {
+                data = {"id":1,"method":"slim.request","params":[MAC,["playlistcontrol","cmd:load","menu:1",cmd[1]+"_id:"+cmd[2],"useContextMenu:1"]]};
+            }
             ti = 1;
         } else if (cmd[0] && cmd[0] === 'custom') {
             data = {"id":1,"method":"slim.request","params":[MAC, event.item.go.params]};
+        } else if (cmd[0] && cmd[0] === 'showplaylist') {
+            topNode = 'showplaylist';
+            data = {"id":1,"method":"slim.request","params":[MAC,["status","-",50,"tags:a"]]};
         } else {
             topNode = '';
             topName = '';
@@ -411,62 +424,75 @@ function getMenu(data, topNode, topName) {
         highlightBackgroundColor: HICOLOR
     });
 
-    data.result.item_loop.forEach(function(s, i, o) {		//parse result loop
-        if (topNode !== '' && s.node !== topNode) { return; }		//filter out submenu entries
-        if (s.text.match(menuskip)) { return; }		//filter out submenu entries
-        if (settings.debug) console.log(JSON.stringify(s));
-        if (s.goAction) {		//parse action command tied to entry
-            if (s.goAction === 'play' || s.goAction === 'playControl') {
-                go = {"cmd": ["play"], "params": []};
-                data.result.base.actions.play.cmd.forEach(function(s, i, o) {
+    if (topNode === 'home') {   //top level menu gets playlist menu
+        go = {"cmd": ["showplaylist"], "params": []};
+        entries.push({id: '0', title: 'Show Playlist', weight: 0, go: go});
+    }
+
+    if (topNode === 'showplaylist') {
+        data.result.playlist_loop.forEach(function(s, i, o) {		//parse and display playlist
+            if (settings.debug) console.log(JSON.stringify(s));
+            go = {"cmd": [ "playlist", 'song', s["playlist index"]]};
+            entries.push({id: s.id, title: s.title, subtitle: s.artist, weight: 0, go: go});
+        });
+    } else {
+        data.result.item_loop.forEach(function(s, i, o) {		//parse result loop
+            if (topNode !== '' && s.node !== topNode) { return; }		//filter out submenu entries
+            if (s.text.match(menuskip)) { return; }		//filter out submenu entries
+            if (settings.debug) console.log(JSON.stringify(s));
+            if (s.goAction) {		//parse action command tied to entry
+                if (s.goAction === 'play' || s.goAction === 'playControl') {
+                    go = {"cmd": ["play"], "params": []};
+                    data.result.base.actions.play.cmd.forEach(function(s, i, o) {
+                        go.params.push(s);
+                    });
+                    go.params.push('item_id:'+s.params.item_id);
+                }
+            } else if (s.type === 'playlist') {
+                if (s.params) {
+                    go = {"cmd": ["playalbum"], "params": []};
+                    data.result.base.actions.play.cmd.forEach(function(s, i, o) {
+                        go.params.push(s);
+                    });
+                    for (var key in s.params) {
+                        go.params.push(key+":"+s.params[key]);
+                    }
+                } else if (s.commonParams.playlist_id) {
+                    go = {"cmd": [ "playlist", 'playlist', s.commonParams.playlist_id ]};
+                } else if (s.commonParams.artist_id) {
+                    go = {"cmd": [ "playlist", 'artist', s.commonParams.artist_id ]};
+                } else if (s.commonParams.album_id) {
+                    go = {"cmd": [ "playlist", 'album', s.commonParams.album_id ]};
+                }
+            } else if (s.type === 'album') {
+                if (s.params.album) {
+                    go = {"cmd": ["playalbum"], "params": []};
+                    data.result.base.actions.play.cmd.forEach(function(s, i, o) {
+                        go.params.push(s);
+                    });
+                    for (var key in s.params) {
+                        go.params.push(key+":"+s.params[key]);
+                    }
+                    for (var key in data.result.base.actions.play.params) {
+                        go.params.push(key+":"+data.result.base.actions.play.params[key]);
+                    }
+                }
+            } else if (s.params) {
+                go = {"cmd": ["custom"], "params": []};
+                data.result.base.actions.go.cmd.forEach(function(s, i, o) {
                     go.params.push(s);
                 });
-                go.params.push('item_id:'+s.params.item_id);
-            }
-        } else if (s.type === 'playlist') {
-            if (s.params) {
-                go = {"cmd": ["playalbum"], "params": []};
-                data.result.base.actions.play.cmd.forEach(function(s, i, o) {
-                    go.params.push(s);
-                });
+                go.params.push(0, 500);
                 for (var key in s.params) {
                     go.params.push(key+":"+s.params[key]);
                 }
-            } else if (s.commonParams.playlist_id) {
-                go = {"cmd": [ "playlist", 'playlist', s.commonParams.playlist_id ]};
-            } else if (s.commonParams.artist_id) {
-                go = {"cmd": [ "playlist", 'artist', s.commonParams.artist_id ]};
-            } else if (s.commonParams.album_id) {
-                go = {"cmd": [ "playlist", 'album', s.commonParams.album_id ]};
+                go.params.push("useContextMenu:1");
+            } else {
+                go = (s.actions && s.actions.go)?s.actions.go:'';
             }
-        } else if (s.type === 'album') {
-            if (s.params.album) {
-                go = {"cmd": ["playalbum"], "params": []};
-                data.result.base.actions.play.cmd.forEach(function(s, i, o) {
-                    go.params.push(s);
-                });
-                for (var key in s.params) {
-                    go.params.push(key+":"+s.params[key]);
-                }
-                for (var key in data.result.base.actions.play.params) {
-                    go.params.push(key+":"+data.result.base.actions.play.params[key]);
-                }
-            }
-        } else if (s.params) {
-            go = {"cmd": ["custom"], "params": []};
-            data.result.base.actions.go.cmd.forEach(function(s, i, o) {
-                go.params.push(s);
-            });
-            go.params.push(0, 500);
-            for (var key in s.params) {
-                go.params.push(key+":"+s.params[key]);
-            }
-            go.params.push("useContextMenu:1");
-        } else {
-            go = (s.actions && s.actions.go)?s.actions.go:'';
-        }
-        entries.push({id: s.id, title: s.text, weight: s.weight, go: go});
-    });
+            entries.push({id: s.id, title: s.text, weight: s.weight, go: go});
+        });
+    }
     /*		entries.sort( function(a,b) {
             if (a.weight) {
             return a.weight > b.weight ? 1 : -1;
@@ -500,7 +526,7 @@ Pebble.addEventListener("webviewclosed", function(event) {
 // *** program flow starts here ***
 if (Pebble.getActiveWatchInfo) {
     var watchinfo = Pebble.getActiveWatchInfo();
-    var platform = watchinfo.platform;
+    platform = watchinfo.platform;
 } else {
     platform="aplite";
 } 
@@ -508,14 +534,32 @@ if (platform === 'aplite') {
     BGCOLOR = 'white';
     ABCOLOR = 'lightGray';
     HICOLOR = 'black';
+    XRES = 144;
+    YRES = 168;
+    TALIGN = 'left';
+    PALIGN = 'left';
+    WIDTH = 110;
+    TOP = 0;
 } else if (platform === 'basalt') {
     BGCOLOR = 'pictonBlue';
     ABCOLOR = 'blueMoon';
     HICOLOR = 'blueMoon';
+    XRES = 144;
+    YRES = 168;
+    TALIGN = 'left';
+    PALIGN = 'left';
+    WIDTH = 110;
+    TOP = 0;
 } else if (platform === 'chalk') {
     BGCOLOR = 'pictonBlue';
     ABCOLOR = 'blueMoon';
     HICOLOR = 'blueMoon';
+    XRES = 180;
+    YRES = 180;
+    TALIGN = 'right';
+    PALIGN = 'center';
+    WIDTH = 132;
+    TOP = 14;
 }
 Accel.init();
 // menu for the LMS players

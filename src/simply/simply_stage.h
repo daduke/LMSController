@@ -24,11 +24,13 @@ typedef enum SimplyElementType SimplyElementType;
 
 enum SimplyElementType {
   SimplyElementTypeNone = 0,
-  SimplyElementTypeRect = 1,
-  SimplyElementTypeCircle = 2,
-  SimplyElementTypeText = 3,
-  SimplyElementTypeImage = 4,
-  SimplyElementTypeInverter = 5,
+  SimplyElementTypeRect,
+  SimplyElementTypeLine,
+  SimplyElementTypeCircle,
+  SimplyElementTypeRadial,
+  SimplyElementTypeText,
+  SimplyElementTypeImage,
+  SimplyElementTypeInverter,
 };
 
 struct SimplyStageLayer {
@@ -44,39 +46,39 @@ struct SimplyStage {
 
 typedef struct SimplyElementCommon SimplyElementCommon;
 
-#define SimplyElementCommonDef { \
-  List1Node node;                \
-  uint32_t id;                   \
-  SimplyElementType type;        \
-  GRect frame;                   \
-  GColor8 background_color;      \
-  GColor8 border_color;          \
-}
+struct SimplyElementCommon {
+  List1Node node;
+  uint32_t id;
+  SimplyElementType type;
+  GRect frame;
+  uint16_t border_width;
+  GColor8 background_color;
+  GColor8 border_color;
+};
 
-struct SimplyElementCommon SimplyElementCommonDef;
-
-#define SimplyElementCommonMember      \
-  union {                              \
-    struct SimplyElementCommon common; \
-    struct SimplyElementCommonDef;     \
-  }
+typedef struct SimplyElementCommon SimplyElementLine;
 
 typedef struct SimplyElementRect SimplyElementRect;
 
 struct SimplyElementRect {
-  SimplyElementCommonMember;
+  SimplyElementCommon common;
   uint16_t radius;
 };
 
 typedef struct SimplyElementRect SimplyElementCircle;
 
+typedef struct SimplyElementRadial SimplyElementRadial;
+
+struct SimplyElementRadial {
+  SimplyElementRect rect;
+  uint16_t angle;
+  uint16_t angle2;
+};
+
 typedef struct SimplyElementText SimplyElementText;
 
 struct SimplyElementText {
-  union {
-    struct SimplyElementRect common;
-    struct SimplyElementCommonDef;
-  };
+  SimplyElementRect rect;
   char *text;
   GFont font;
   TimeUnits time_units:8;
@@ -88,10 +90,7 @@ struct SimplyElementText {
 typedef struct SimplyElementImage SimplyElementImage;
 
 struct SimplyElementImage {
-  union {
-    struct SimplyElementRect common;
-    struct SimplyElementCommonDef;
-  };
+  SimplyElementRect rect;
   uint32_t image;
   GCompOp compositing;
 };
@@ -99,7 +98,7 @@ struct SimplyElementImage {
 typedef struct SimplyElementInverter SimplyElementInverter;
 
 struct SimplyElementInverter {
-  SimplyElementCommonMember;
+  SimplyElementCommon common;
   InverterLayer *inverter_layer;
 };
 

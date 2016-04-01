@@ -1,5 +1,7 @@
+.gitignore
 .DS_Store
 *.pyc
 /.lock-*
 /build/
 /out/
+Makefile

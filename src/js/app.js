@@ -49,6 +49,8 @@ var Vector2 = require('vector2');
 var Vibe = require('ui/vibe');
 var Accel = require('ui/accel');
 var ajax = require('ajax');
+var Voice = require('ui/voice');
+
 
 // *** helper functions ***
 //iOS is missing btoa() -> own Base64 routine
@@ -209,7 +211,7 @@ function showPlayer(event) {
             down: 'images/voldown.png'
         },
         backgroundColor: ABCOLOR,
-        fullscreen: true
+        status: false
     });
     var bgRect = new UI.Rect({
         position: new Vector2(0, 0),
@@ -381,6 +383,18 @@ function processMenu(event) {
         } else if (cmd[0] && cmd[0] === 'showplaylist') {
             topNode = 'showplaylist';
             data = {"id":1,"method":"slim.request","params":[MAC,["status","-",50,"tags:a"]]};
+        } else if (cmd[0] && cmd[0] === 'voicesearch') {
+            Voice.dictate('start', false, function(e) {
+                if (e.err) {
+                    console.log('Error: ' + e.err);
+                    return;
+                }
+                data = {"id":1,"method":"slim.request","params":[MAC,["globalsearch","items",0,200,"menu:globalsearch","search:"+e.transcription,"useContextMenu:1"]]}
+                if (settings.debug) console.log(JSON.stringify(data));
+                sbRequest(myurl, "POST", data, function(response) {
+                    getMenu(response, topNode, topName);
+                });
+            });
         } else {
             topNode = '';
             topName = '';
@@ -419,6 +433,7 @@ function getMenu(data, topNode, topName) {
             title: topName,
             items: [{title: 'getting menu..'}]
         }],
+        status: false,
         menuIndex: 0,
         backgroundColor: BGCOLOR,
         highlightBackgroundColor: HICOLOR
@@ -427,6 +442,10 @@ function getMenu(data, topNode, topName) {
     if (topNode === 'home') {   //top level menu gets playlist menu
         go = {"cmd": ["showplaylist"], "params": []};
         entries.push({id: '0', title: 'Show Playlist', weight: 0, go: go});
+        if (platform != 'aplite') {
+            go = {"cmd": ["voicesearch"], "params": []};
+            entries.push({id: '1', title: 'Voice Search', weight: 0, go: go});
+        }
     }
 
     if (topNode === 'showplaylist') {
@@ -435,6 +454,7 @@ function getMenu(data, topNode, topName) {
             go = {"cmd": [ "playlist", 'song', s["playlist index"]]};
             entries.push({id: s.id, title: s.title, subtitle: s.artist, weight: 0, go: go});
         });
+    } else if (topNode === 'voicesearch') {
     } else {
         data.result.item_loop.forEach(function(s, i, o) {		//parse result loop
             if (topNode !== '' && s.node !== topNode) { return; }		//filter out submenu entries
@@ -568,6 +588,7 @@ var playerMenu = new UI.Menu({
         title: 'Players',
         items: [{title: 'getting players..'}]
     }],
+    status: false,
     playerIndex: 0,
     backgroundColor: BGCOLOR,
     highlightBackgroundColor: HICOLOR

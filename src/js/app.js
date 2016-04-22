@@ -8,7 +8,9 @@
 // get LMS URL
 var settings = JSON.parse(localStorage.getItem("settings")) || [];
 if (settings) {
-    var URL = settings.protocol + '://' + settings.ip + ':' + settings.port;
+    var auth = (settings.password !== '')?settings.user + ':' + settings.password + '@':'';
+    var URL = settings.protocol + '://' + auth + settings.ip + ':' + settings.port;
+//    settings.cauth = '92251eed2cd64db63406e47b162f39e3';
 }
 if (settings.menuskip) {
     settings.menuskip = "|" + settings.menuskip;
@@ -222,7 +224,7 @@ function showPlayer(event) {
 
     var xpos = (platform === 'chalk')?(XRES/2):51;
     var playerBox = new UI.Text({
-        position: new Vector2(xpos-48, TOP),
+        position: new Vector2(xpos-48, TOP+5),
         size: new Vector2(96, 22),
         font: 'gothic_18_bold',
         text: playerName,
@@ -254,9 +256,10 @@ function showPlayer(event) {
     });
     playerInfo.add(titleBox);
 
-    var x = (platform === 'chalk')?83:100;
+    var x = (platform === 'chalk')?136:100;
+    var y = (platform === 'chalk')?20:0;
     volumeBox = new UI.Text({
-        position: new Vector2(x, 0),
+        position: new Vector2(x, y),
         size: new Vector2(18, 22),
         font: 'gothic_14',
         text: '',
@@ -266,24 +269,45 @@ function showPlayer(event) {
     });
     playerInfo.add(volumeBox);
 
+    if (platform === 'chalk') {
+        var time = new UI.TimeText({
+            position: new Vector2(70, 1),
+            size: new Vector2(40, 22),
+            font: 'gothic-18',
+            color: 'black',
+            text: '%H:%M',
+            textAlign: 'center'
+        });
+        playerInfo.add(time);
+    }
+
     playerInfo.show();
     trackInfo(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
     // handlers for player control
     var increment = settings.increment;
     playerInfo.on('click', 'up', function(event) {
         var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=%2b"+increment+"&player="+playerMAC;
+        if (settings.cauth !== '') {
+            myurl += '&;cauth='+settings.cauth;
+        }
         sbRequest(myurl, 'GET', '', function(response) {
             actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
     });
     playerInfo.on('click', 'select', function(event) {
         var myurl=URL+"/status.html?p0=pause&player="+playerMAC;
+        if (settings.cauth !== '') {
+            myurl += '&;cauth='+settings.cauth;
+        }
         sbRequest(myurl, 'GET', '', function(response) {
             actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
     });
     playerInfo.on('click', 'down', function(event) {
         var myurl=URL+"/status.html?p0=mixer&p1=volume&p2=-"+increment+"&player="+playerMAC;
+        if (settings.cauth !== '') {
+            myurl += '&;cauth='+settings.cauth;
+        }
         sbRequest(myurl, 'GET', '', function(response) {
             actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
@@ -296,6 +320,9 @@ function showPlayer(event) {
             backgroundColor: ABCOLOR
         });
         var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=-1&player="+playerMAC;
+        if (settings.cauth !== '') {
+            myurl += '&;cauth='+settings.cauth;
+        }
         sbRequest(myurl, 'GET', '', function(response) {
             actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
@@ -321,6 +348,9 @@ function showPlayer(event) {
             backgroundColor: ABCOLOR
         });
         var myurl=URL+"/status.html?p0=playlist&p1=jump&p2=%2b1&player="+playerMAC;
+        if (settings.cauth !== '') {
+            myurl += '&;cauth='+settings.cauth;
+        }
         sbRequest(myurl, 'GET', '', function(response) {
             actOnButton(playerMAC, playerInfo, artistBox, titleBox, volumeBox);
         });
@@ -359,7 +389,7 @@ function getPlayers(data) {
     playerMenu.items(0, players);
 }
 
-function processMenu(event) {
+function processMenu(event, ret) {
     var myurl=URL+"/jsonrpc.js";
     var data;
     var topNode;
@@ -411,7 +441,7 @@ function processMenu(event) {
     }
     if (settings.debug) console.log(JSON.stringify(data));
     sbRequest(myurl, "POST", data, function(response) {
-        if (ti) {		//close menus if we're going back to track info
+        if (ti && ret) {		//close menus if we're going back to track info
             actionMenus.forEach(function(s, i, o) {
                 s.hide();
             });
@@ -454,7 +484,6 @@ function getMenu(data, topNode, topName) {
             go = {"cmd": [ "playlist", 'song', s["playlist index"]]};
             entries.push({id: s.id, title: s.title, subtitle: s.artist, weight: 0, go: go});
         });
-    } else if (topNode === 'voicesearch') {
     } else {
         data.result.item_loop.forEach(function(s, i, o) {		//parse result loop
             if (topNode !== '' && s.node !== topNode) { return; }		//filter out submenu entries
@@ -521,7 +550,10 @@ function getMenu(data, topNode, topName) {
             }
             }); */
         am.on('select', function(event) {
-            processMenu(event);
+            processMenu(event, 1);
+        });
+        am.on('longSelect', function(event) {
+            processMenu(event, 0);
         });
     am.items(0, entries);
     am.show();

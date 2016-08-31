@@ -5,7 +5,6 @@
   ],
   "companyName": "daduke",
   "longName": "LMS Controller",
-  "projectType": "pebblejs",
   "resources": {
     "media": [
       {
@@ -24,11 +23,10 @@
         "type": "font"
       },
       {
-        "file": "images/lmspebble.png",
-        "memoryFormat": "1Bit",
+        "file": "images/icon.png",
         "menuIcon": true,
         "name": "IMAGE_MENU_ICON",
-        "type": "bitmap"
+        "type": "png"
       },
       {
         "file": "images/dots.png",
@@ -76,9 +74,8 @@
   ],
   "uuid": "e2415dfc-5a77-461f-a054-b24f8ca61c12",
   "versionCode": 1,
-  "versionLabel": "2.45",
+  "versionLabel": "2.46",
   "watchapp": {
-    "hiddenApp": false,
     "watchface": false
   }
 }

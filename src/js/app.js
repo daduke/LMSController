@@ -542,19 +542,34 @@ function getMenu(data, topNode, topName) {
             entries.push({id: s.id, title: s.text, weight: s.weight, go: go});
         });
     }
-    /*		entries.sort( function(a,b) {
-            if (a.weight) {
-            return a.weight > b.weight ? 1 : -1;
-            } else {
-            return a.title > b.title ? 1 : -1;
-            }
-            }); */
-        am.on('select', function(event) {
-            processMenu(event, 1);
+    am.on('select', function(event) {
+        processMenu(event, 1);
+    });
+    am.on('longSelect', function(event) {
+        detailInfo = new UI.Window({
+            scrollable: true,
+            backgroundColor: BGCOLOR,
+            status: false
         });
-        am.on('longSelect', function(event) {
-            processMenu(event, 0);
+        var delta = (platform === 'chalk')?24:0;
+        var text = event.item.title;
+        if (settings.debug) console.log(JSON.stringify(event.item));
+        if (event.item.subtitle) {
+            text += "\n"+event.item.subtitle;
+        }
+        var detailBox = new UI.Text({
+            position: new Vector2(3+delta/2, TOP+23),
+            size: new Vector2(XRES-delta, 156),
+            font: 'gothic_24',
+            text: text,
+            color: 'black',
+            textOverflow:'wrap',
+            textAlign: PALIGN
         });
+        detailInfo.add(detailBox);
+        detailInfo.show();
+
+    });
     am.items(0, entries);
     am.show();
     actionMenus.push(am);

@@ -597,7 +597,7 @@ if (Pebble.getActiveWatchInfo) {
 } else {
     platform="aplite";
 } 
-if (platform === 'aplite') {
+if (platform === 'aplite' || platform === 'diorite') {
     BGCOLOR = 'white';
     ABCOLOR = 'lightGray';
     HICOLOR = 'black';

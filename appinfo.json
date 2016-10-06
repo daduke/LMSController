@@ -62,6 +62,16 @@
         "file": "images/pause.png",
         "name": "IMAGES_PAUSE_PNG",
         "type": "bitmap"
+      },
+      {
+        "file": "images/iconplay.png",
+        "name": "ICON_PLAY",
+        "type": "png"
+      },
+      {
+        "file": "images/iconpause.png",
+        "name": "ICON_PAUSE",
+        "type": "png"
       }
     ]
   },

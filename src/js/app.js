@@ -44,6 +44,7 @@ var titleBox;
 var volumeBox;
 var actionMenus = [];
 var platform;
+var myToken;
 
 // load libraries
 var UI = require('ui');
@@ -122,13 +123,13 @@ function sbRequest(url, method, data, callback) {
         options.type = 'json';
     }
     ajax(options,
-            function(data, status, request) {
-                callback(data);
-            },
-            function(error, status, request) {
-                if (settings.debug) console.log('The ajax request failed: ' + request + '   ' + status + '    '  + error);
-            }
-        );
+        function(data, status, request) {
+            callback(data);
+        },
+        function(error, status, request) {
+            if (settings.debug) console.log('The ajax request failed: ' + request + '   ' + status + '    '  + error);
+        }
+    );
 }
 
 // update info window
@@ -179,6 +180,11 @@ function updateInfo(response, window, artistBox, titleBox, volumeBox) {
     artistBox.text(artist);
     titleBox.text(title);
     volumeBox.text(volume);
+
+    var text = artist;
+    if (title) { text += ': '+title; }
+    addGlance('', true);
+    addGlance(text, false);
 }
 
 // get information about playing track
@@ -590,7 +596,56 @@ Pebble.addEventListener("webviewclosed", function(event) {
     }
 });
 
+function addGlance(text, del) {
+    var json = {};
+    if (del === true) {
+        json = {
+              "slices": []
+        };
+    } else {
+        json = {
+            "slices": [
+            {
+                "layout": {
+                    "icon": "app://images/GLANCE_PLAY",
+                    "subtitleTemplateString": text
+                }
+            }
+            ]
+
+        };
+    }
+
+    ajax(
+        {
+            url: "https://timeline-api.getpebble.com/v1/user/glance",
+            method: 'PUT',
+            headers: {
+                'X-User-Token': myToken
+            },
+            type: 'json',
+            data: json
+        },
+        function(data, status, request) {
+        },
+        function(error, status, request) {
+            if (settings.debug) console.log('The ajax request failed: ' + myToken + ' ' + JSON.stringify(json) + '  ' + status + '    '  + error);
+        }
+    );
+}
+
 // *** program flow starts here ***
+Pebble.getTimelineToken(
+    function (token) {
+        myToken = token;
+        console.log('Token: ' + myToken);
+    },
+    function (error) {
+        console.log('Error getting timeline token: ' + error);
+    }
+);
+
+
 if (Pebble.getActiveWatchInfo) {
     var watchinfo = Pebble.getActiveWatchInfo();
     platform = watchinfo.platform;

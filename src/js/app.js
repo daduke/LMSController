@@ -183,8 +183,7 @@ function updateInfo(response, window, artistBox, titleBox, volumeBox) {
 
     var text = artist;
     if (title) { text += ': '+title; }
-    addGlance('', true);
-    addGlance(text, false);
+    addGlance(text);
 }
 
 // get information about playing track
@@ -596,25 +595,18 @@ Pebble.addEventListener("webviewclosed", function(event) {
     }
 });
 
-function addGlance(text, del) {
-    var json = {};
-    if (del === true) {
-        json = {
-              "slices": []
-        };
-    } else {
-        json = {
-            "slices": [
-            {
-                "layout": {
-                    "icon": "app://images/GLANCE_PLAY",
-                    "subtitleTemplateString": text
-                }
+function addGlance(text) {
+    var json = {
+        "slices": [
+        {
+            "layout": {
+                "icon": "app://images/GLANCE_PLAY",
+                "subtitleTemplateString": text
             }
-            ]
+        }
+        ]
 
-        };
-    }
+    };
 
     ajax(
         {
@@ -638,10 +630,10 @@ function addGlance(text, del) {
 Pebble.getTimelineToken(
     function (token) {
         myToken = token;
-        console.log('Token: ' + myToken);
+        if (settings.debug) console.log('Token: ' + myToken);
     },
     function (error) {
-        console.log('Error getting timeline token: ' + error);
+        if (settings.debug) console.log('Error getting timeline token: ' + error);
     }
 );
 

@@ -1,0 +1,114 @@
+{
+  "author": "daduke",
+  "dependencies": {},
+  "keywords": [
+    "pebble-app"
+  ],
+  "name": "LMSController",
+  "pebble": {
+    "capabilities": [
+      "configurable"
+    ],
+    "displayName": "LMS Controller",
+    "enableMultiJS": false,
+    "messageKeys": {},
+    "projectType": "native",
+    "resources": {
+      "media": [
+        {
+          "file": "images/logo_splash.png",
+          "name": "IMAGE_LOGO_SPLASH",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/tile_splash.png",
+          "name": "IMAGE_TILE_SPLASH",
+          "type": "bitmap"
+        },
+        {
+          "file": "fonts/UbuntuMono-Regular.ttf",
+          "name": "MONO_FONT_14",
+          "type": "font"
+        },
+        {
+          "file": "images/icon.png",
+          "menuIcon": true,
+          "name": "IMAGE_MENU_ICON",
+          "type": "png"
+        },
+        {
+          "file": "images/dots.png",
+          "name": "IMAGES_DOTS_PNG",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/prev.png",
+          "name": "IMAGES_PREV_PNG",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/next.png",
+          "name": "IMAGES_NEXT_PNG",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/play.png",
+          "name": "IMAGES_PLAY_PNG",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/volup.png",
+          "name": "IMAGES_VOLUP_PNG",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/voldown.png",
+          "name": "IMAGES_VOLDOWN_PNG",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/pause.png",
+          "name": "IMAGES_PAUSE_PNG",
+          "type": "bitmap"
+        },
+        {
+          "file": "images/iconplay.png",
+          "name": "ICON_PLAY",
+          "type": "png"
+        },
+        {
+          "file": "images/iconpause.png",
+          "name": "ICON_PAUSE",
+          "type": "png"
+        }
+      ],
+      "publishedMedia": [
+        {
+          "glance": "ICON_PLAY",
+          "id": 1,
+          "name": "GLANCE_PLAY"
+        },
+        {
+          "glance": "ICON_PAUSE",
+          "id": 2,
+          "name": "GLANCE_PAUSE"
+        }
+      ]
+    },
+    "sdkVersion": "3",
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk",
+      "diorite"
+    ],
+    "uuid": "e2415dfc-5a77-461f-a054-b24f8ca61c12",
+    "watchapp": {
+      "hiddenApp": false,
+      "onlyShownOnCommunication": false,
+      "watchface": false
+    }
+  },
+  "private": true,
+  "version": "2.50.0"
+}

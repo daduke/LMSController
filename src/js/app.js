@@ -37,6 +37,9 @@ var TALIGN;
 var PALIGN;
 var WIDTH;
 var TOP;
+var FONTTINY;
+var FONTSMALL;
+var FONTBIG;
 var MAC;
 var playerInfo;
 var artistBox;
@@ -231,7 +234,7 @@ function showPlayer(event) {
     var playerBox = new UI.Text({
         position: new Vector2(xpos-48, TOP+5),
         size: new Vector2(96, 22),
-        font: 'gothic_18_bold',
+        font: FONTSMALL+'_bold',
         text: playerName,
         color: 'black',
         textOverflow:'ellipsis',
@@ -239,10 +242,25 @@ function showPlayer(event) {
     });
     playerInfo.add(playerBox);
 
+    var y1;
+    var y2;
+    var h1;
+    var h2;
+    if (platform === 'emery') {
+        y1 = 32;
+        y2 = 104;
+        h1 = 70;
+        h2 = 120;
+    } else {
+        y1 = 23;
+        y2 = 72;
+        h1 = 60;
+        h2 = 96;
+    }
     artistBox = new UI.Text({
-        position: new Vector2(3, TOP+23),
-        size: new Vector2(WIDTH, 60),
-        font: 'gothic_24',
+        position: new Vector2(3, TOP+y1),
+        size: new Vector2(WIDTH, h1),
+        font: FONTBIG,
         text: '',
         color: 'black',
         textOverflow: 'ellipsis',
@@ -251,9 +269,9 @@ function showPlayer(event) {
     playerInfo.add(artistBox);
 
     titleBox = new UI.Text({
-        position: new Vector2(3, TOP+72),
-        size: new Vector2(WIDTH, 96),
-        font: 'gothic_24_bold',
+        position: new Vector2(3, TOP+y2),
+        size: new Vector2(WIDTH, h2),
+        font: FONTBIG+'_bold',
         text: '',
         color: 'black',
         textOverflow: 'ellipsis',
@@ -261,12 +279,22 @@ function showPlayer(event) {
     });
     playerInfo.add(titleBox);
 
-    var x = (platform === 'chalk')?136:100;
-    var y = (platform === 'chalk')?20:0;
+    var x;
+    var y;
+    if (platform === 'chalk') {
+        x = 136;
+        y = 20;
+    } else if (platform === 'emery') {
+        x = 150;
+        y = 0;
+    } else {
+        x = 100;
+        y = 0;
+    }
     volumeBox = new UI.Text({
         position: new Vector2(x, y),
         size: new Vector2(18, 22),
-        font: 'gothic_14',
+        font: FONTTINY,
         text: '',
         color: 'black',
         textOverflow: 'ellipsis',
@@ -278,7 +306,7 @@ function showPlayer(event) {
         var time = new UI.TimeText({
             position: new Vector2(70, 1),
             size: new Vector2(40, 22),
-            font: 'gothic-18',
+            font: FONTSMALL,
             color: 'black',
             text: '%H:%M',
             textAlign: 'center'
@@ -565,7 +593,7 @@ function getMenu(data, topNode, topName) {
         var detailBox = new UI.Text({
             position: new Vector2(3+delta/2, TOP+23),
             size: new Vector2(XRES-delta, 156),
-            font: 'gothic_24',
+            font: FONTBIG,
             text: text,
             color: 'black',
             textOverflow:'wrap',
@@ -605,7 +633,6 @@ function addGlance(text) {
             }
         }
         ]
-
     };
 
     ajax(
@@ -654,6 +681,9 @@ if (platform === 'aplite' || platform === 'diorite') {
     PALIGN = 'left';
     WIDTH = 110;
     TOP = 0;
+    FONTTINY = 'gothic_14';
+    FONTSMALL = 'gothic_18';
+    FONTBIG = 'gothic_24';
 } else if (platform === 'basalt') {
     BGCOLOR = 'pictonBlue';
     ABCOLOR = 'blueMoon';
@@ -664,6 +694,9 @@ if (platform === 'aplite' || platform === 'diorite') {
     PALIGN = 'left';
     WIDTH = 110;
     TOP = 0;
+    FONTTINY = 'gothic_14';
+    FONTSMALL = 'gothic_18';
+    FONTBIG = 'gothic_24';
 } else if (platform === 'chalk') {
     BGCOLOR = 'pictonBlue';
     ABCOLOR = 'blueMoon';
@@ -674,6 +707,22 @@ if (platform === 'aplite' || platform === 'diorite') {
     PALIGN = 'center';
     WIDTH = 132;
     TOP = 14;
+    FONTTINY = 'gothic_14';
+    FONTSMALL = 'gothic_18';
+    FONTBIG = 'gothic_24';
+} else if (platform === 'emery') {
+    BGCOLOR = 'pictonBlue';
+    ABCOLOR = 'blueMoon';
+    HICOLOR = 'blueMoon';
+    XRES = 200;
+    YRES = 228;
+    TALIGN = 'left';
+    PALIGN = 'left';
+    WIDTH = 160;
+    TOP = 0;
+    FONTTINY = 'gothic_18';
+    FONTSMALL = 'gothic_24';
+    FONTBIG = 'gothic_28';
 }
 Accel.init();
 // menu for the LMS players
